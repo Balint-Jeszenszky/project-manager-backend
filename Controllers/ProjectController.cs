@@ -10,17 +10,17 @@ namespace project_manager_backend.Controllers
 {
     [Route("api/Project")]
     [ApiController]
-    public class Project : ControllerBase
+    public class ProjectController : ControllerBase
     {
         private ProjectManagerDBContext context;
-        public Project(ProjectManagerDBContext context)
+        public ProjectController(ProjectManagerDBContext context)
         {
            this.context = context;
         }
+
         [HttpGet("{projectId}")]
         public async Task<ActionResult<Models.Project>> GetTodoItem(int projectId)
         {
-            
             var project = await context.Projects.FindAsync(projectId);
 
             if (project == null)

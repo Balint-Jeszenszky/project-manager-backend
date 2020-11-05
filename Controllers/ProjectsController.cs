@@ -9,17 +9,20 @@ using project_manager_backend.Models;
 
 namespace project_manager_backend.Controllers
 {
-    [Route("api/[controller]/{userID}")]
+    [Route("api/Projects")]
     [ApiController]
-    public class Projects : ControllerBase
+    public class ProjectsController : ControllerBase
     {
-        [HttpGet]
+        private ProjectManagerDBContext context;
+        public ProjectsController(ProjectManagerDBContext context)
+        {
+            this.context = context;
+        }
+
+        [HttpGet("{userID}")]
         public async Task<ActionResult<IEnumerable<Models.Project>>> Get()
         {
-            using (var context = new ProjectManagerDBContext())
-            {
-                return await context.Projects.ToListAsync();
-            }
+            return await context.Projects.ToListAsync();
         }
     }
 }
