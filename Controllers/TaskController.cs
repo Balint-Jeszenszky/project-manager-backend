@@ -20,9 +20,9 @@ namespace project_manager_backend.Controllers
         }
 
         [HttpGet("{taskId}")]
-        public async Task<ActionResult<IEnumerable<Models.Task>>> GetProject(int taskId)
+        public async Task<ActionResult<Models.Task>> GetProject(int taskId)
         {
-            return await context.Tasks.Where(t => t.ID == taskId).ToListAsync();
+            return await context.Tasks.FirstOrDefaultAsync(t => t.ID == taskId);
         }
 
         [HttpPost]

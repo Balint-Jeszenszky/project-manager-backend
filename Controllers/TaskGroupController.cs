@@ -20,7 +20,7 @@ namespace project_manager_backend.Controllers
         }
 
         [HttpGet("{groupID}")]
-        public async Task<ActionResult<IEnumerable<Models.Task>>> GetProject(int groupID)
+        public async Task<ActionResult<IEnumerable<Models.Task>>> GetGroup(int groupID)
         {
             return await context.Tasks.Where(t => t.TaskgroupID == groupID).ToListAsync();
         }
@@ -31,7 +31,7 @@ namespace project_manager_backend.Controllers
             context.TaskGroups.Add(taskGroup);
             await context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetProject), new { id = taskGroup.ID }, taskGroup);
+            return CreatedAtAction(nameof(GetGroup), new { id = taskGroup.ID }, taskGroup);
         }
 
         [HttpPut("{groupID}")]
