@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using project_manager_backend.Models;
 
 namespace project_manager_backend.Controllers
@@ -18,17 +19,64 @@ namespace project_manager_backend.Controllers
             this.context = context;
         }
 
-        [HttpGet("{groupId}")]
-        public async Task<ActionResult<Models.TaskGroup>> GetTodoItem(int groupId)
+        [HttpGet("{groupID}")]
+        public async Task<ActionResult<IEnumerable<Models.Task>>> GetProject(int groupID)
         {
-            var taskgroup = await context.TaskGroups.FindAsync(groupId);
+            return await context.Tasks.Where(t => t.TaskgroupID == groupID).ToListAsync();
+        }
 
-            if (taskgroup == null)
+        [HttpPost]
+        public async Task<ActionResult<TaskGroup>> PostProject(TaskGroup taskGroup)
+        {
+            context.TaskGroups.Add(taskGroup);
+            await context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetProject), new { id = taskGroup.ID }, taskGroup);
+        }
+
+        [HttpPut("{groupID}")]
+        public async Task<IActionResult> UpdateProject(int groupID, TaskGroup taskGroup)
+        {
+            if (groupID != taskGroup.ID)
+            {
+                return BadRequest();
+            }
+
+            context.Entry(taskGroup).State = EntityState.Modified;
+
+            try
+            {
+                await context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!GroupExists(groupID))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return NoContent();
+        }
+
+        [HttpDelete("{groupID}")]
+        public async Task<ActionResult<TaskGroup>> DeleteProject(int groupID)
+        {
+            var delGroup = await context.TaskGroups.FindAsync(groupID);
+            if (delGroup == null)
             {
                 return NotFound();
             }
 
-            return taskgroup;
+            context.TaskGroups.Remove(delGroup);
+            await context.SaveChangesAsync();
+
+            return delGroup;
         }
+        private bool GroupExists(int id) =>
+            context.Projects.Any(e => e.ID == id);
     }
 }

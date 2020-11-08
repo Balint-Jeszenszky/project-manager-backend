@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using project_manager_backend.Models;
 
 namespace project_manager_backend.Controllers
@@ -19,16 +20,9 @@ namespace project_manager_backend.Controllers
         }
 
         [HttpGet("{projectId}")]
-        public async Task<ActionResult<Models.Project>> GetTodoItem(int projectId)
+        public async Task<ActionResult<IEnumerable<TaskGroup>>> GetTaskGroups(int projectId)
         {
-            var project = await context.Projects.FindAsync(projectId);
-
-            if (project == null)
-            {
-                return NotFound();
-            }
-
-            return project;
+            return await context.TaskGroups.Where(t => t.ProjectID == projectId).ToListAsync();
         }
     }
 }
