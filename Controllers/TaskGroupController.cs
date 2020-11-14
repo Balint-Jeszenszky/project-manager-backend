@@ -13,7 +13,7 @@ namespace project_manager_backend.Controllers
     [ApiController]
     public class TaskGroupController : ControllerBase
     {
-        private ProjectManagerDBContext context;
+        private readonly ProjectManagerDBContext context;
         public TaskGroupController(ProjectManagerDBContext context)
         {
             this.context = context;

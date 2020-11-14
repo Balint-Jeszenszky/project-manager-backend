@@ -13,7 +13,7 @@ namespace project_manager_backend.Controllers
     [ApiController]
     public class TaskController : ControllerBase
     {
-        private ProjectManagerDBContext context;
+        private readonly ProjectManagerDBContext context;
         public TaskController(ProjectManagerDBContext context)
         {
             this.context = context;
@@ -55,7 +55,29 @@ namespace project_manager_backend.Controllers
                 return BadRequest();
             }
 
-            context.Entry(task).State = EntityState.Modified;
+            var oldtask = await context.Tasks.FindAsync(taskId);
+
+            if (oldtask.Priority != task.Priority)
+            {
+                var changetask = await context.Tasks.FirstAsync(t => t.Priority == task.Priority && t.TaskgroupID == task.TaskgroupID);
+                changetask.Priority = oldtask.Priority;
+                oldtask.Priority = task.Priority;
+                context.Entry(changetask).State = EntityState.Modified;
+                context.Entry(oldtask).State = EntityState.Modified;
+            }
+            else
+            {
+                oldtask.Name = task.Name;
+                oldtask.Description = task.Description;
+                oldtask.Deadline = task.Deadline;
+                if (oldtask.TaskgroupID != task.TaskgroupID)
+                {
+                    (await context.Tasks.Where(t => t.Priority > oldtask.Priority && t.TaskgroupID == oldtask.TaskgroupID).ToListAsync()).ForEach(g => g.Priority -= 1);
+                    oldtask.Priority = (await context.Tasks.Where(t => t.TaskgroupID == task.TaskgroupID).MaxAsync(t => (int?)t.Priority)) ?? 0 + 1;
+                    oldtask.TaskgroupID = task.TaskgroupID;
+                }
+                context.Entry(oldtask).State = EntityState.Modified;
+            }
 
             try
             {
@@ -83,6 +105,8 @@ namespace project_manager_backend.Controllers
             {
                 return NotFound();
             }
+
+            (await context.Tasks.Where(t => t.Priority > delTask.Priority && t.TaskgroupID == delTask.TaskgroupID).ToListAsync()).ForEach(g => g.Priority -= 1);
 
             context.Tasks.Remove(delTask);
             await context.SaveChangesAsync();
