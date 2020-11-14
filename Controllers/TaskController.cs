@@ -9,7 +9,7 @@ using project_manager_backend.Models;
 
 namespace project_manager_backend.Controllers
 {
-    [Route("api/Task")]
+    [Route("api/Tasks")]
     [ApiController]
     public class TaskController : ControllerBase
     {
@@ -19,10 +19,23 @@ namespace project_manager_backend.Controllers
             this.context = context;
         }
 
-        [HttpGet("{taskId}")]
-        public async Task<ActionResult<Models.Task>> GetProject(int taskId)
+        [HttpGet("task/{taskId}")]
+        public async Task<ActionResult<Models.Task>> GetTask(int taskID)
         {
-            return await context.Tasks.FirstOrDefaultAsync(t => t.ID == taskId);
+            var task = await context.Tasks.FindAsync(taskID);
+
+            if (task == null)
+            {
+                return NotFound();
+            }
+
+            return task;
+        }
+
+        [HttpGet("group/{groupID}")]
+        public async Task<ActionResult<IEnumerable<Models.Task>>> GetGroup(int groupID)
+        {
+            return await context.Tasks.Where(t => t.TaskgroupID == groupID).ToListAsync();
         }
 
         [HttpPost]
@@ -31,7 +44,7 @@ namespace project_manager_backend.Controllers
             context.Tasks.Add(task);
             await context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetProject), new { id = task.ID }, task);
+            return CreatedAtAction(nameof(GetTask), new { taskId = task.ID }, task);
         }
 
         [HttpPut("{taskId}")]

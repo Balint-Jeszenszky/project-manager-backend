@@ -20,18 +20,25 @@ namespace project_manager_backend.Controllers
         }
 
         [HttpGet("{userID}")]
-        public async Task<ActionResult<IEnumerable<Models.User>>> GetUser()
+        public async Task<ActionResult<User>> GetUser(int userID)
         {
-            return await context.Users.ToListAsync();
+            var user = await context.Users.FindAsync(userID);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return user;
         }
 
         [HttpPost]
-        public async Task<ActionResult<User>> PostUser(User user)
+        public async Task<ActionResult<User>> AddUser(User user)
         {
             context.Users.Add(user);
             await context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetUser), user);
+            return CreatedAtAction(nameof(GetUser), new { userID = user.ID }, user);
         }
 
         [HttpPut]

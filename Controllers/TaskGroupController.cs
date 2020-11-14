@@ -19,10 +19,23 @@ namespace project_manager_backend.Controllers
             this.context = context;
         }
 
-        [HttpGet("{groupID}")]
-        public async Task<ActionResult<IEnumerable<Models.Task>>> GetGroup(int groupID)
+        [HttpGet("group/{groupID}")]
+        public async Task<ActionResult<TaskGroup>> GetGroup(int groupID)
         {
-            return await context.Tasks.Where(t => t.TaskgroupID == groupID).ToListAsync();
+            var group = await context.TaskGroups.FindAsync(groupID);
+
+            if (group == null)
+            {
+                return NotFound();
+            }
+
+            return group;
+        }
+
+        [HttpGet("groups/{projectId}")]
+        public async Task<ActionResult<IEnumerable<TaskGroup>>> GetTaskGroups(int projectId)
+        {
+            return await context.TaskGroups.Where(t => t.ProjectID == projectId).ToListAsync();
         }
 
         [HttpPost]
@@ -31,7 +44,7 @@ namespace project_manager_backend.Controllers
             context.TaskGroups.Add(taskGroup);
             await context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetGroup), new { id = taskGroup.ID }, taskGroup);
+            return CreatedAtAction(nameof(GetGroup), new { groupID = taskGroup.ID }, taskGroup);
         }
 
         [HttpPut("{groupID}")]
@@ -42,7 +55,21 @@ namespace project_manager_backend.Controllers
                 return BadRequest();
             }
 
-            context.Entry(taskGroup).State = EntityState.Modified;
+            var oldgroup = await context.TaskGroups.FindAsync(groupID);
+
+            if (oldgroup.Priority != taskGroup.Priority)
+            {
+                var changegroup = await context.TaskGroups.FirstAsync(g => g.Priority == taskGroup.Priority && g.ProjectID == taskGroup.ProjectID);
+                changegroup.Priority = oldgroup.Priority;
+                oldgroup.Priority = taskGroup.Priority;
+                context.Entry(changegroup).State = EntityState.Modified;
+                context.Entry(oldgroup).State = EntityState.Modified;
+            }
+            else
+            {
+                oldgroup.Name = taskGroup.Name;
+                context.Entry(oldgroup).State = EntityState.Modified;
+            }
 
             try
             {
@@ -70,6 +97,8 @@ namespace project_manager_backend.Controllers
             {
                 return NotFound();
             }
+
+            (await context.TaskGroups.Where(g => g.Priority > delGroup.Priority && g.ProjectID == delGroup.ProjectID).ToListAsync()).ForEach(g => g.Priority -= 1);
 
             context.TaskGroups.Remove(delGroup);
             await context.SaveChangesAsync();
