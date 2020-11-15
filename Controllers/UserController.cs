@@ -32,7 +32,7 @@ namespace project_manager_backend.Controllers
             return user;
         }
 
-        [HttpPost]
+        [HttpPost("register")]
         public async Task<ActionResult<User>> AddUser(User user)
         {
             context.Users.Add(user);
@@ -41,16 +41,63 @@ namespace project_manager_backend.Controllers
             return CreatedAtAction(nameof(GetUser), new { userID = user.ID }, user);
         }
 
-        [HttpPut]
-        public async Task<IActionResult> UpdateUser()
+        [HttpPost("login")]
+        public async Task<ActionResult<User>> CheckUser(User user)
         {
+            var founduser = await context.Users.FirstOrDefaultAsync(u => u.Username == user.Username && u.Password == user.Password);
+
+            if (founduser == null)
+            {
+                return Unauthorized();
+            }
+
+            return founduser;
+        }
+
+        [HttpPut("{userID}")]
+        public async Task<IActionResult> UpdateUser(int userID, User user)
+        {
+            if (userID != user.ID)
+            {
+                return BadRequest();
+            }
+
+            context.Entry(user).State = EntityState.Modified;
+
+            try
+            {
+                await context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!UserExists(userID))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
             return NoContent();
         }
 
-        [HttpDelete]
-        public async Task<IActionResult> DeleteUser()
+        [HttpDelete("{userID}")]
+        public async Task<ActionResult<User>> DeleteUser(int userID)
         {
-            return NoContent();
+            var delUser = await context.Users.FindAsync(userID);
+            if (delUser == null)
+            {
+                return NotFound();
+            }
+
+            context.Users.Remove(delUser);
+            await context.SaveChangesAsync();
+
+            return delUser;
         }
+
+        private bool UserExists(int id) =>
+            context.Users.Any(e => e.ID == id);
     }
 }
