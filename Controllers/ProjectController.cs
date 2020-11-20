@@ -13,7 +13,7 @@ namespace project_manager_backend.Controllers
     [ApiController]
     public class ProjectController : ControllerBase
     {
-        private ProjectManagerDBContext context;
+        private readonly ProjectManagerDBContext context;
         public ProjectController(ProjectManagerDBContext context)
         {
             this.context = context;

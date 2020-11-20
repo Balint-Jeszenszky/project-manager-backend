@@ -13,7 +13,7 @@ namespace project_manager_backend.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private ProjectManagerDBContext context;
+        private readonly ProjectManagerDBContext context;
         public UserController(ProjectManagerDBContext context)
         {
             this.context = context;
@@ -62,7 +62,12 @@ namespace project_manager_backend.Controllers
                 return BadRequest();
             }
 
-            context.Entry(user).State = EntityState.Modified;
+            var savedUser = await context.Users.FindAsync(userID);
+
+            savedUser.Name = user.Name;
+            savedUser.Email = user.Email;
+            if (user.Password != "")
+                savedUser.Password = user.Password;
 
             try
             {
