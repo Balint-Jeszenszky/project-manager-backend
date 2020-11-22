@@ -73,7 +73,7 @@ namespace project_manager_backend.Controllers
                 if (oldtask.TaskgroupID != task.TaskgroupID)
                 {
                     (await context.Tasks.Where(t => t.Priority > oldtask.Priority && t.TaskgroupID == oldtask.TaskgroupID).ToListAsync()).ForEach(g => g.Priority -= 1);
-                    oldtask.Priority = (await context.Tasks.Where(t => t.TaskgroupID == task.TaskgroupID).MaxAsync(t => (int?)t.Priority)) ?? 0 + 1;
+                    oldtask.Priority = ((await context.Tasks.Where(t => t.TaskgroupID == task.TaskgroupID).MaxAsync(t => (int?)t.Priority)) ?? 0) + 1;
                     oldtask.TaskgroupID = task.TaskgroupID;
                 }
                 context.Entry(oldtask).State = EntityState.Modified;
