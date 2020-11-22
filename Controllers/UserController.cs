@@ -35,6 +35,12 @@ namespace project_manager_backend.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<User>> AddUser(User user)
         {
+            var founduser = await context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Username == user.Username);
+            if (founduser != null)
+            {
+                return Conflict();
+            }
+
             context.Users.Add(user);
             await context.SaveChangesAsync();
 
