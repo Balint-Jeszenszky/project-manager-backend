@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Project_manager_backend.Models;
 
-namespace project_manager_backend.Migrations
+namespace Project_manager_backend.Migrations
 {
     [DbContext(typeof(ProjectManagerDBContext))]
     [Migration("20201101230443_InitialCreate")]
