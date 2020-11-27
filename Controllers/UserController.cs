@@ -1,114 +1,155 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using project_manager_backend.Models;
+﻿// <copyright file="UserController.cs" company="BME VIK AUT Témalaboratóruim">
+// Copyright (c) BME VIK AUT Témalaboratóruim. All rights reserved.
+// </copyright>
 
-namespace project_manager_backend.Controllers
+namespace Project_manager_backend.Controllers
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.EntityFrameworkCore;
+    using Project_manager_backend.Models;
+
+    /// <summary>
+    /// api/User endpoint, responsible for User CRUD.
+    /// </summary>
     [Route("api/User")]
     [ApiController]
     public class UserController : ControllerBase
     {
         private readonly ProjectManagerDBContext context;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserController"/> class.
+        /// </summary>
+        /// <param name="context">ProjectManagerDBContext instance.</param>
         public UserController(ProjectManagerDBContext context)
         {
             this.context = context;
         }
 
+        /// <summary>
+        /// Handle GET request for the user.
+        /// </summary>
+        /// <param name="userID">ID of the user.</param>
+        /// <returns>Returns the requested user.</returns>
         [HttpGet("{userID}")]
         public async Task<ActionResult<User>> GetUser(int userID)
         {
-            var user = await context.Users.FindAsync(userID);
+            var user = await this.context.Users.FindAsync(userID);
 
             if (user == null)
             {
-                return NotFound();
+                return this.NotFound();
             }
 
             return user;
         }
 
+        /// <summary>
+        /// Handle POST request for a new user reg.
+        /// </summary>
+        /// <param name="user">The new user.</param>
+        /// <returns>Returns the new user or conflict if the username is alredy exists.</returns>
         [HttpPost("register")]
         public async Task<ActionResult<User>> AddUser(User user)
         {
-            var founduser = await context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Username == user.Username);
+            var founduser = await this.context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Username == user.Username);
             if (founduser != null)
             {
-                return Conflict();
+                return this.Conflict();
             }
 
-            context.Users.Add(user);
-            await context.SaveChangesAsync();
+            this.context.Users.Add(user);
+            await this.context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetUser), new { userID = user.ID }, user);
+            return this.CreatedAtAction(nameof(this.GetUser), new { userID = user.ID }, user);
         }
 
+        /// <summary>
+        /// Handle POST request for login.
+        /// </summary>
+        /// <param name="user">User credentials.</param>
+        /// <returns>Unauthorized if the credentials wrong or the users data.</returns>
         [HttpPost("login")]
         public async Task<ActionResult<User>> CheckUser(User user)
         {
-            var founduser = await context.Users.FirstOrDefaultAsync(u => u.Username == user.Username && u.Password == user.Password);
+            var founduser = await this.context.Users.FirstOrDefaultAsync(u => u.Username == user.Username && u.Password == user.Password);
 
             if (founduser == null)
             {
-                return Unauthorized();
+                return this.Unauthorized();
             }
 
             return founduser;
         }
 
+        /// <summary>
+        /// Handle PUT request for updating user data.
+        /// </summary>
+        /// <param name="userID">ID of user.</param>
+        /// <param name="user">Modified user data.</param>
+        /// <returns>Returns BadRequest if the ID is wrong or Nocontext.</returns>
         [HttpPut("{userID}")]
         public async Task<IActionResult> UpdateUser(int userID, User user)
         {
             if (userID != user.ID)
             {
-                return BadRequest();
+                return this.BadRequest();
             }
 
-            var savedUser = await context.Users.FindAsync(userID);
+            var savedUser = await this.context.Users.FindAsync(userID);
 
             savedUser.Name = user.Name;
             savedUser.Email = user.Email;
-            if (user.Password != "")
+            if (user.Password != string.Empty)
+            {
                 savedUser.Password = user.Password;
+            }
 
             try
             {
-                await context.SaveChangesAsync();
+                await this.context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!UserExists(userID))
+                if (!this.UserExists(userID))
                 {
-                    return NotFound();
+                    return this.NotFound();
                 }
                 else
                 {
                     throw;
                 }
             }
-            return NoContent();
+
+            return this.NoContent();
         }
 
+        /// <summary>
+        /// Handle DELETE request for deleting a user.
+        /// </summary>
+        /// <param name="userID">ID of the user.</param>
+        /// <returns>Returns the deleted user.</returns>
         [HttpDelete("{userID}")]
         public async Task<ActionResult<User>> DeleteUser(int userID)
         {
-            var delUser = await context.Users.FindAsync(userID);
+            var delUser = await this.context.Users.FindAsync(userID);
             if (delUser == null)
             {
-                return NotFound();
+                return this.NotFound();
             }
 
-            context.Users.Remove(delUser);
-            await context.SaveChangesAsync();
+            this.context.Users.Remove(delUser);
+            await this.context.SaveChangesAsync();
 
             return delUser;
         }
 
         private bool UserExists(int id) =>
-            context.Users.Any(e => e.ID == id);
+            this.context.Users.Any(e => e.ID == id);
     }
 }
