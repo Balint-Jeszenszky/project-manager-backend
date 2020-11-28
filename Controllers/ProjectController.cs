@@ -69,7 +69,7 @@ namespace Project_manager_backend.Controllers
             this.context.Projects.Add(project);
             await this.context.SaveChangesAsync();
 
-            return this.CreatedAtAction(nameof(this.GetProject), new { id = project.ID }, project);
+            return this.CreatedAtAction(nameof(this.GetProject), new { projectID = project.ID }, project);
         }
 
         /// <summary>

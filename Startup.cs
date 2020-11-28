@@ -61,8 +61,6 @@ namespace Project_manager_backend
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseHttpsRedirection();
-
             app.UseRouting();
 
             app.UseCors();

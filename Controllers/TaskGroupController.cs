@@ -66,7 +66,7 @@ namespace Project_manager_backend.Controllers
         [HttpPost]
         public async Task<ActionResult<TaskGroup>> PostProject(TaskGroup taskGroup)
         {
-            _ = this.context.TaskGroups.Add(taskGroup);
+            this.context.TaskGroups.Add(taskGroup);
             await this.context.SaveChangesAsync();
 
             return this.CreatedAtAction(nameof(this.GetGroup), new { groupID = taskGroup.ID }, taskGroup);
