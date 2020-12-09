@@ -46,7 +46,7 @@ namespace Project_manager_backend.Controllers
                 return this.NotFound();
             }
 
-            return task;
+            return this.Ok(task);
         }
 
         /// <summary>
@@ -57,7 +57,9 @@ namespace Project_manager_backend.Controllers
         [HttpGet("group/{groupID}")]
         public async Task<ActionResult<IEnumerable<Models.Task>>> GetGroup(int groupID)
         {
-            return await this.context.Tasks.Where(t => t.TaskgroupID == groupID).ToListAsync();
+            var tasks = await this.context.Tasks.Where(t => t.TaskgroupID == groupID).ToListAsync();
+
+            return this.Ok(tasks);
         }
 
         /// <summary>
@@ -66,7 +68,7 @@ namespace Project_manager_backend.Controllers
         /// <param name="task">Task to create.</param>
         /// <returns>Returns the created task.</returns>
         [HttpPost]
-        public async Task<ActionResult<Models.Task>> PostProject(Models.Task task)
+        public async Task<ActionResult<Models.Task>> PostTask(Models.Task task)
         {
             this.context.Tasks.Add(task);
             await this.context.SaveChangesAsync();
@@ -81,7 +83,7 @@ namespace Project_manager_backend.Controllers
         /// <param name="task">Modified task.</param>
         /// <returns>Returns a BadRequest if the ID not equal with the task id or NoContext.</returns>
         [HttpPut("{taskId}")]
-        public async Task<IActionResult> UpdateProject(int taskId, Models.Task task)
+        public async Task<IActionResult> UpdateTask(int taskId, Models.Task task)
         {
             if (taskId != task.ID)
             {
@@ -89,6 +91,11 @@ namespace Project_manager_backend.Controllers
             }
 
             var oldtask = await this.context.Tasks.FindAsync(taskId);
+
+            if (oldtask == null)
+            {
+                return this.BadRequest();
+            }
 
             if (oldtask.Priority != task.Priority)
             {
@@ -151,7 +158,7 @@ namespace Project_manager_backend.Controllers
             this.context.Tasks.Remove(delTask);
             await this.context.SaveChangesAsync();
 
-            return delTask;
+            return this.Ok(delTask);
         }
 
         private bool TaskExists(int id) =>
