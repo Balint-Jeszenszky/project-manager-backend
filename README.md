@@ -8,7 +8,7 @@ A projekt BME VIK AUT témalaboratóriumra készült teendőket kezelő háromr�
 - Asp .net core 3.1
 - Entity Framework Core 3.1
 
-### Szökséges szoftverek:
+### Szükséges szoftverek:
 - MSSQL server
 - Visual studio 2019
 
